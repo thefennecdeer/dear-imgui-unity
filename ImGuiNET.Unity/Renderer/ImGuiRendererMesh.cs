@@ -3,6 +3,15 @@ using UnityEngine.Rendering;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Profiling;
+using System.Collections.Generic;
+
+/*
+
+FIX SETMESH WARNING BY OCEANCX ON GITHUB!!!
+https://github.com/realgamessoftware/dear-imgui-unity/pull/24
+bless
+
+*/
 
 namespace ImGuiNET.Unity
 {
@@ -31,6 +40,7 @@ namespace ImGuiNET.Unity
         // skip all checks and validation when updating the mesh
         const MeshUpdateFlags NoMeshChecks = MeshUpdateFlags.DontNotifyMeshUsers | MeshUpdateFlags.DontRecalculateBounds
                                            | MeshUpdateFlags.DontResetBoneBounds | MeshUpdateFlags.DontValidateIndices;
+        List<SubMeshDescriptor> descriptors = new List<SubMeshDescriptor>();
         int _prevSubMeshCount = 1;  // number of sub meshes used previously
 
         static readonly ProfilerMarker s_updateMeshPerfMarker = new ProfilerMarker("DearImGui.RendererMesh.UpdateMesh");
@@ -93,10 +103,10 @@ namespace ImGuiNET.Unity
             _mesh.SetVertexBufferParams(drawData.TotalVtxCount, s_attributes);
             _mesh.SetIndexBufferParams (drawData.TotalIdxCount, IndexFormat.UInt16);
 
+            descriptors.Clear();
             // upload data into mesh
             int vtxOf = 0;
             int idxOf = 0;
-            int subOf = 0;
             for (int n = 0, nMax = drawData.CmdListsCount; n < nMax; ++n)
             {
                 ImDrawListPtr drawList = drawData.CmdListsRange[n];
@@ -124,11 +134,13 @@ namespace ImGuiNET.Unity
                         indexCount = (int)cmd.ElemCount,
                         baseVertex = vtxOf + (int)cmd.VtxOffset,
                     };
+                    descriptors.Add(descriptor)
                     _mesh.SetSubMesh(subOf++, descriptor, NoMeshChecks);
                 }
                 vtxOf += vtxArray.Length;
                 idxOf += idxArray.Length;
             }
+            _mesh.SetSubMeshes(descriptors, NoMeshChecks);
             _mesh.UploadMeshData(false);
         }
 
