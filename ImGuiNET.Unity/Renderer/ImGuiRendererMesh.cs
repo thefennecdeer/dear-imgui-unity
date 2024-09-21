@@ -134,7 +134,7 @@ namespace ImGuiNET.Unity
                         indexCount = (int)cmd.ElemCount,
                         baseVertex = vtxOf + (int)cmd.VtxOffset,
                     };
-                    _mesh.SetSubMesh(subOf++, descriptor, NoMeshChecks);
+                    descriptors.Add(descriptor);
                 }
                 vtxOf += vtxArray.Length;
                 idxOf += idxArray.Length;
